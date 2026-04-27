@@ -69,7 +69,7 @@
 		font-size: 0.62rem; font-weight: 600; letter-spacing: 0.2em;
 		text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem;
 	}
-	.col a, .col span { font-size: 0.82rem; color: rgba(255,255,255,0.62); transition: color 0.2s; }
+	.col a, .col span { font-size: 0.82rem; color: rgba(255,255,255,0.85); transition: color 0.2s; }
 	.col a:hover { color: #a8d8f0; }
 	.bottom { border-top: 1px solid rgba(255,255,255,0.08); }
 	.bottom-inner {

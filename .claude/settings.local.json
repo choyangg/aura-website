@@ -4,7 +4,9 @@
       "Bash(npm run *)",
       "WebFetch(domain:www.private-flying.com)",
       "Bash(mv \"c:/Users/choya/meine-firma-website/static/projekte/ChatGPT Image 24. Apr. 2026, 22_47_27.png\" \"c:/Users/choya/meine-firma-website/static/projekte/livingspaces.png\")",
-      "Bash(mv \"c:/Users/choya/meine-firma-website/static/projekte/ChatGPT Image 24. Apr. 2026, 22_48_26.png\" \"c:/Users/choya/meine-firma-website/static/projekte/lumina.png\")"
+      "Bash(mv \"c:/Users/choya/meine-firma-website/static/projekte/ChatGPT Image 24. Apr. 2026, 22_48_26.png\" \"c:/Users/choya/meine-firma-website/static/projekte/lumina.png\")",
+      "Bash(mv \"c:/Users/choya/meine-firma-website/static/projekte/Green vista.png\" \"c:/Users/choya/meine-firma-website/static/projekte/green-vista.png\")",
+      "Bash(mv \"c:/Users/choya/meine-firma-website/static/projekte/swiss vita.png\" \"c:/Users/choya/meine-firma-website/static/projekte/swiss-vita.png\")"
     ]
   }
 }

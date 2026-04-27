@@ -48,18 +48,36 @@
 	}
 
 	const projs = [
-		{ src: '/projekte/livingspaces.png', alt: 'LivingSpaces – Immobilien', cat: 'Immobilien', name: 'LivingSpaces' },
-		{ src: '/projekte/lumina.png', alt: 'Lumina – Beauty Studio', cat: 'Beauty & Kosmetik', name: 'Lumina Studio' },
+		{ src: '/projekte/livingspaces.png', cat: 'Immobilien',          name: 'LivingSpaces'  },
+		{ src: '/projekte/beauty.png',       cat: 'Beauty & Kosmetik',   name: 'Lumina Studio' },
+		{ src: '/projekte/Holzwerk.png',     cat: 'Schreinerei',         name: 'Holzwerk'      },
+		{ src: '/projekte/Oasis.png',        cat: 'Restaurant & Bar',    name: 'Oasis'         },
+		{ src: '/projekte/Physiovita.png',   cat: 'Physiotherapie',      name: 'PhysioVita'    },
+		{ src: '/projekte/Zahnwerk.png',     cat: 'Zahnarztpraxis',      name: 'Zahnwerk'      },
+		{ src: '/projekte/green-vista.png',  cat: 'Immobilien',          name: 'Green Vista'   },
+		{ src: '/projekte/swiss-vita.png',   cat: 'Gesundheit',          name: 'Swiss Vita'    },
 	];
 	let projClip = $state(null);
+	let projIndex = $state(0);
+
 	function projScroll(dir) {
 		if (!projClip) return;
-		projClip.scrollBy({ left: dir * (projClip.offsetWidth / 2 + 12), behavior: 'smooth' });
+		projClip.scrollBy({ left: dir * (projClip.offsetWidth / 3 + 8), behavior: 'smooth' });
+	}
+	function onProjScroll() {
+		if (!projClip) return;
+		const max = projClip.scrollWidth - projClip.clientWidth;
+		projIndex = max > 0 ? Math.min(Math.round((projClip.scrollLeft / max) * (projs.length - 1)), projs.length - 1) : 0;
+	}
+	function scrollToSlide(i) {
+		if (!projClip) return;
+		projClip.scrollTo({ left: (projClip.scrollWidth / projs.length) * i, behavior: 'smooth' });
 	}
 
 	const links = [
-		{ href: '/leistungen', label: 'Leistungen' },
-		{ href: '/ablauf',     label: 'Ablauf'     },
+		{ href: '/leistungen',  label: 'Leistungen'  },
+		{ href: '/ablauf',      label: 'Ablauf'      },
+		{ href: '/referenzen',  label: 'Referenzen'  },
 	];
 
 	$effect(() => {
@@ -282,25 +300,41 @@
 			<span class="eyebrow proj-eyebrow">Unsere Arbeiten</span>
 			<h2 class="section-title proj-title">Websites, die wir<br/><em>gebaut haben.</em></h2>
 		</div>
-		<div class="proj-slider" data-reveal>
-			<div class="proj-stage">
-				<button class="proj-arrow proj-prev" onclick={() => projScroll(-1)} aria-label="Zurück">←</button>
-				<div class="proj-clip" bind:this={projClip}>
-					{#each projs as p}
-						<div class="proj-slide">
-							<img src={p.src} alt={p.alt} loading="lazy" />
-							<div class="proj-caption">
-								<span class="proj-cat">{p.cat}</span>
-								<span class="proj-name">{p.name}</span>
+	</div>
+	<div class="proj-wide" data-reveal>
+		<div class="proj-stage">
+			<button class="proj-arrow proj-prev" onclick={() => projScroll(-1)} aria-label="Zurück">
+				<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+			<div class="proj-clip" bind:this={projClip} onscroll={onProjScroll}>
+				{#each projs as p, i}
+					<a href="/referenzen" class="proj-slide">
+						<div class="proj-img-wrap">
+							<img src={p.src} alt={p.name} loading="lazy" />
+							<div class="proj-overlay">
+								<span class="proj-overlay-cat">{p.cat}</span>
+								<span class="proj-overlay-name">{p.name}</span>
 							</div>
 						</div>
-					{/each}
-				</div>
-				<button class="proj-arrow proj-next" onclick={() => projScroll(1)} aria-label="Weiter">→</button>
+						<div class="proj-caption">
+							<span class="proj-cat">{p.cat}</span>
+							<span class="proj-name">{p.name}</span>
+						</div>
+					</a>
+				{/each}
 			</div>
-			<div class="proj-footer">
-				<a href="/referenzen" class="proj-link">Alle Projekte ansehen →</a>
+			<button class="proj-arrow proj-next" onclick={() => projScroll(1)} aria-label="Weiter">
+				<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+		</div>
+		<div class="proj-footer">
+			<div class="proj-dots">
+				{#each projs as _, i}
+					<button class="proj-dot" class:active={projIndex === i} onclick={() => scrollToSlide(i)} aria-label="Slide {i+1}"></button>
+				{/each}
 			</div>
+			<span class="proj-counter">{projIndex + 1} / {projs.length}</span>
+			<a href="/referenzen" class="proj-link">Alle Projekte ansehen →</a>
 		</div>
 	</div>
 </section>
@@ -835,23 +869,60 @@
 	/* ── Projekt-Slider ── */
 	.proj-light { background: #f2f0ec; padding: 6rem 0; }
 	.proj-light .section-header { margin-bottom: 3rem; }
-	.proj-stage { position: relative; display: flex; align-items: center; gap: 0; }
+	.proj-wide {
+		max-width: 1420px; margin: 0 auto; padding: 0 2rem; position: relative;
+	}
+	.proj-stage { position: relative; display: flex; align-items: center; }
 	.proj-clip {
-		flex: 1; display: flex; gap: 1.5rem;
+		flex: 1; display: flex; gap: 1.25rem;
 		overflow-x: auto; scroll-snap-type: x mandatory;
 		-ms-overflow-style: none; scrollbar-width: none;
 	}
 	.proj-clip::-webkit-scrollbar { display: none; }
 	.proj-slide {
-		flex: 0 0 calc(50% - 0.75rem);
+		flex: 0 0 calc(33.33% - 0.84rem);
 		scroll-snap-align: start;
 		display: flex; flex-direction: column; gap: 0.75rem;
-		transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+		transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
 	}
-	.proj-slide:hover { transform: translateY(-4px); }
-	.proj-slide img { width: 100%; display: block; border-radius: 6px; box-shadow: 0 8px 32px rgba(14,14,22,0.12); }
+	.proj-slide:hover { transform: translateY(-6px); }
+
+	.proj-img-wrap { position: relative; overflow: hidden; border-radius: 8px; }
+	.proj-img-wrap img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block;
+		box-shadow: 0 8px 32px rgba(14,14,22,0.12);
+		transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+	}
+	.proj-slide:hover .proj-img-wrap img { transform: scale(1.04); }
+	.proj-overlay {
+		position: absolute; inset: 0; border-radius: 8px;
+		background: linear-gradient(to top, rgba(6,6,10,0.82) 0%, rgba(6,6,10,0.2) 55%, transparent 100%);
+		display: flex; flex-direction: column; justify-content: flex-end; gap: 0.3rem;
+		padding: 1.25rem 1rem;
+		opacity: 0; transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1);
+	}
+	.proj-slide:hover .proj-overlay { opacity: 1; }
+	.proj-overlay-cat {
+		font-size: 0.58rem; font-weight: 600; letter-spacing: 0.2em;
+		text-transform: uppercase; color: #c9a96e;
+	}
+	.proj-overlay-name { font-size: 1rem; font-weight: 600; color: #fff; }
+
 	.proj-caption { display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem; }
-	.proj-footer { display: flex; justify-content: flex-end; margin-top: 1.25rem; }
+	.proj-footer {
+		display: flex; align-items: center; justify-content: space-between;
+		margin-top: 1.75rem; gap: 1rem;
+	}
+	.proj-dots { display: flex; gap: 6px; }
+	.proj-dot {
+		width: 6px; height: 6px; border-radius: 50%;
+		background: rgba(14,14,22,0.2); border: none; cursor: pointer; padding: 0;
+		transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+	}
+	.proj-dot.active { background: #0e0e16; width: 22px; border-radius: 3px; }
+	.proj-counter {
+		font-size: 0.65rem; font-weight: 500; letter-spacing: 0.12em;
+		color: rgba(14,14,22,0.45); margin-right: auto; padding-left: 0.75rem;
+	}
 	.proj-eyebrow { color: rgba(14,14,22,0.4); }
 	.proj-title { color: #0e0e16; }
 	.proj-title em { color: #1a4a6b; }
@@ -861,24 +932,27 @@
 	}
 	.proj-name { font-size: 0.9rem; font-weight: 600; color: rgba(14,14,22,0.75); }
 	.proj-arrow {
-		position: absolute; top: 42%; z-index: 10;
-		width: 48px; height: 48px; border-radius: 50%;
-		background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
-		border: 1px solid rgba(14,14,22,0.1);
-		box-shadow: 0 4px 20px rgba(14,14,22,0.14);
-		color: #0e0e16; font-size: 1rem; cursor: pointer;
+		position: absolute; top: calc(50% - 1.75rem); z-index: 10;
+		width: 44px; height: 44px; border-radius: 50%;
+		background: #fff; backdrop-filter: blur(8px);
+		border: 1px solid rgba(14,14,22,0.08);
+		box-shadow: 0 2px 12px rgba(14,14,22,0.1), 0 8px 32px rgba(14,14,22,0.08);
+		color: #0e0e16; cursor: pointer;
 		display: flex; align-items: center; justify-content: center;
 		transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
 		transform: translateY(-50%);
 	}
-	.proj-prev { left: -22px; }
-	.proj-next { right: -22px; }
-	.proj-arrow:hover { background: #fff; box-shadow: 0 8px 32px rgba(14,14,22,0.2); transform: translateY(-50%) scale(1.08); }
+	.proj-prev { left: -16px; }
+	.proj-next { right: -16px; }
+	.proj-arrow:hover {
+		box-shadow: 0 4px 24px rgba(14,14,22,0.18), 0 12px 40px rgba(14,14,22,0.12);
+		transform: translateY(-50%) scale(1.1);
+	}
 	.proj-link {
 		font-size: 0.68rem; font-weight: 500; letter-spacing: 0.14em;
 		text-transform: uppercase; color: rgba(14,14,22,0.55);
 		border-bottom: 1px solid rgba(14,14,22,0.25);
-		padding-bottom: 0.15rem; transition: all 0.2s;
+		padding-bottom: 0.15rem; transition: all 0.2s; white-space: nowrap;
 	}
 	.proj-link:hover { color: #0e0e16; border-color: #0e0e16; }
 
