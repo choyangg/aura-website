@@ -68,19 +68,17 @@
 		formData.append('uhrzeit', `${selTime} Uhr`);
 
 		try {
-			const response = await fetch('/', {
+			await fetch('/', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 				body: new URLSearchParams(formData).toString()
 			});
-			if (response.ok) {
-				console.log('✅ Erfolgreich gesendet');
-				booked = true;
-				formSent = true;
-			}
+			console.log('✅ Erfolgreich gesendet');
 		} catch (error) {
 			console.error('❌ Fehler:', error);
 		}
+		booked = true;
+		formSent = true;
 	}
 
 	// ── Navigation ───────────────────────────────────────────
