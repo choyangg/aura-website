@@ -23,8 +23,10 @@
 	let firma         = $state('');
 
 	// ── UI state ─────────────────────────────────────────────
-	let showCal  = $state(false);
-	let formSent = $state(false);
+	let showCal   = $state(false);
+	let formSent  = $state(false);
+	let showErr   = $state(false);
+	let formError = $state('');
 
 	// ── Calendar ─────────────────────────────────────────────
 	const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
@@ -52,30 +54,35 @@
 		const d  = new Date(selDate.y, selDate.m, selDate.d);
 		const ds = d.toLocaleDateString('de-CH', {weekday:'long', day:'numeric', month:'long'});
 
-		const params = new URLSearchParams({
-			'form-name': 'projekt-anfrage',
-			name: `${vorname} ${nachname}`,
-			email, telefon,
-			branche: brancheLabel,
-			website: hasWebsite === 'ja' ? (websiteUrl || 'Ja') : 'Nein',
-			ziel: ziele.join(', ') + (zielSonstiges ? ` / ${zielSonstiges}` : ''),
-			budget: budgetUnsicher ? 'Noch unsicher' : (budget || 'keine Angabe'),
-			termin: `${ds}, ${selTime} Uhr`,
-		});
-
 		await fetch('/', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-			body: params.toString()
+			body: new URLSearchParams({
+				'form-name': 'projekt-anfrage',
+				branche: brancheLabel,
+				website: hasWebsite === 'ja' ? (websiteUrl || 'Ja') : 'Nein',
+				ziele: ziele.join(', ') + (zielSonstiges ? ` / ${zielSonstiges}` : ''),
+				budget: budgetUnsicher ? 'Noch unsicher' : (budget || 'keine Angabe'),
+				name: `${vorname} ${nachname}`,
+				email,
+				telefon,
+				termin: `${ds}, ${selTime} Uhr`,
+			}).toString()
 		});
 
+		console.log('Formular erfolgreich gesendet');
 		booked = true;
 		formSent = true;
 	}
 
 	// ── Navigation ───────────────────────────────────────────
-	function goNext() { dir = 1;  step = Math.min(step+1, TOTAL); }
-	function goBack() { dir = -1; step = Math.max(step-1, 1); }
+	function goNext() {
+		if (!canContinue()) { showErr = true; return; }
+		showErr = false;
+		dir = 1;
+		step = Math.min(step + 1, TOTAL);
+	}
+	function goBack() { showErr = false; dir = -1; step = Math.max(step-1, 1); }
 
 	// ── Validation ───────────────────────────────────────────
 	function canContinue() {
@@ -83,7 +90,7 @@
 		if (step===2) return !!hasWebsite;
 		if (step===3) return ziele.length > 0;
 		if (step===4) return budgetUnsicher || !!budget.trim();
-		if (step===5) return !!(vorname.trim() && nachname.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && telefon.trim());
+		if (step===5) return !!(vorname.trim() && nachname.trim() && email.trim().includes('@') && telefon.trim());
 		return true;
 	}
 
@@ -223,12 +230,8 @@
 						<p class="step-hint">Diese Angabe hilft uns, eine passende Strategie zu empfehlen.</p>
 						<div class="field-wrap">
 							<label for="f-budget">Dein Budget</label>
-							<input id="f-budget" type="text" placeholder="Dein Budget" bind:value={budget} disabled={budgetUnsicher} />
+							<input id="f-budget" type="text" placeholder="Dein Budget" bind:value={budget} onchange={e=>budget=e.target.value} />
 						</div>
-						<label class="unsicher-wrap">
-							<input type="checkbox" bind:checked={budgetUnsicher} />
-							<span>Bin mir noch unsicher</span>
-						</label>
 
 					<!-- ── 5: Kontaktdaten ── -->
 					{:else if step===5}
@@ -238,21 +241,29 @@
 							<div class="row-2">
 								<div class="field">
 									<label for="f-vorname">Vorname <span class="req">*</span></label>
-									<input id="f-vorname" type="text" placeholder="Max" bind:value={vorname} />
+									<input id="f-vorname" type="text" placeholder="Max"
+									class:err={showErr && !vorname.trim()}
+									oninput={e=>vorname=e.currentTarget.value} value={vorname} />
 								</div>
 								<div class="field">
 									<label for="f-nachname">Nachname <span class="req">*</span></label>
-									<input id="f-nachname" type="text" placeholder="Mustermann" bind:value={nachname} />
+									<input id="f-nachname" type="text" placeholder="Mustermann"
+										class:err={showErr && !nachname.trim()}
+										oninput={e=>nachname=e.currentTarget.value} value={nachname} />
 								</div>
 							</div>
 							<div class="row-2">
 								<div class="field">
 									<label for="f-email">E-Mail <span class="req">*</span></label>
-									<input id="f-email" type="email" placeholder="max@firma.ch" bind:value={email} />
+									<input id="f-email" type="text" placeholder="max@firma.ch"
+										class:err={showErr && !email.trim().includes('@')}
+										oninput={e=>email=e.currentTarget.value} value={email} />
 								</div>
 								<div class="field">
 									<label for="f-telefon">Telefon <span class="req">*</span></label>
-									<input id="f-telefon" type="tel" placeholder="+41 76 123 45 67" bind:value={telefon} />
+									<input id="f-telefon" type="tel" placeholder="+41 76 123 45 67"
+										class:err={showErr && !telefon.trim()}
+										oninput={e=>telefon=e.currentTarget.value} value={telefon} />
 								</div>
 							</div>
 							<div class="field">
@@ -263,8 +274,7 @@
 
 					<!-- ── 6: Zusammenfassung ── -->
 					{:else if step===6}
-						<h2 class="step-q">Fast geschafft — bitte prüfe deine Angaben.</h2>
-						<p class="step-hint">Danach wählst du deinen Wunschtermin für ein kostenloses Erstgespräch.</p>
+						<h2 class="step-q">Fast geschafft. Bitte prüfe deine Angaben.</h2>
 						<div class="summary">
 							<div class="sum-row">
 								<span class="sum-key">Branche</span>
@@ -322,7 +332,7 @@
 					<button
 						class="btn-next"
 						class:inactive={!canContinue()}
-						onclick={()=>canContinue()&&goNext()}
+						onclick={goNext}
 						type="button"
 					>Weiter →</button>
 				{:else}
@@ -348,15 +358,20 @@
 		<div class="container">
 
 			<div class="cal-head">
-				<h2 class="display cal-title">Dein kostenloses<br /><em>Erstgespräch buchen.</em></h2>
-				<p class="cal-sub">Wähle einen Termin — wir melden uns zur Bestätigung innerhalb von 24 Stunden.</p>
+				{#if booked}
+					<h2 class="display cal-title">Vielen Dank für<br /><em>Ihre Anfrage.</em></h2>
+					<p class="cal-sub">Wir melden uns innerhalb von 24 Stunden bei Ihnen.</p>
+				{:else}
+					<h2 class="display cal-title">Ihr kostenloses<br /><em>Erstgespräch buchen.</em></h2>
+					<p class="cal-sub">Wählen Sie einen Termin. Wir melden uns zur Bestätigung innerhalb von 24 Stunden.</p>
+				{/if}
 			</div>
 
 			{#if booked}
 				<div class="booked-msg" in:fly={{y:10, duration:300}}>
 					<div class="booked-icon">✓</div>
 					<h3>Terminanfrage gesendet!</h3>
-					<p>Wir bestätigen deinen Termin per E-Mail oder Telefon.<br />Bis bald — wir freuen uns auf das Gespräch.</p>
+					<p>Wir bestätigen Ihren Termin per E-Mail oder Telefon.<br />Bis bald. Wir freuen uns auf das Gespräch.</p>
 				</div>
 			{:else}
 				<div class="cal-wrap">
@@ -400,8 +415,8 @@
 						onclick={confirmAppointment}
 						disabled={!selDate||!selTime}
 						type="button"
-					>{selDate&&selTime ? 'Termin per E-Mail bestätigen →' : 'Datum & Uhrzeit wählen'}</button>
-					<p class="cal-note">Wir bestätigen deinen Wunschtermin innerhalb von 24 Stunden.</p>
+					>{selDate&&selTime ? 'Anfrage absenden →' : 'Datum & Uhrzeit wählen'}</button>
+					<p class="cal-note">Wir bestätigen Ihren Wunschtermin innerhalb von 24 Stunden.</p>
 				</div>
 			{/if}
 
@@ -429,7 +444,7 @@
 	/* ── Progress ── */
 	.prog-wrap { display: flex; align-items: center; gap: 1rem; margin-bottom: 2.75rem; }
 	.prog-track { flex: 1; height: 2px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
-	.prog-fill  { height: 100%; background: #c9a96e; transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
+	.prog-fill  { height: 100%; background: rgba(168,216,240,0.7); box-shadow: 0 0 8px rgba(168,216,240,0.4); transition: width 0.5s cubic-bezier(0.16,1,0.3,1); }
 	.prog-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35); white-space: nowrap; }
 
 	/* ── Step pane ── */
@@ -447,8 +462,8 @@
 		cursor: pointer; transition: all 0.18s;
 		font-size: 0.925rem; color: rgba(215,232,248,0.75); line-height: 1.4;
 	}
-	.branch-row:hover { border-left-color: rgba(168,216,240,0.35); color: #f0f4f8; background: rgba(168,216,240,0.03); }
-	.branch-row.sel   { border-left-color: #a8d8f0; color: #f0f4f8; background: rgba(168,216,240,0.05); }
+	.branch-row:hover { border-left-color: rgba(168,216,240,0.5); color: #f0f4f8; background: rgba(168,216,240,0.05); }
+	.branch-row.sel   { border-left-color: #a8d8f0; color: #fff; background: rgba(168,216,240,0.07); box-shadow: 0 0 8px rgba(168,216,240,0.08); }
 
 	/* ── Choice grid (step 2) ── */
 	.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
@@ -459,7 +474,7 @@
 		font-size: 0.925rem; color: rgba(220,235,248,0.8); text-align: center;
 	}
 	.choice-card:hover { border-color: rgba(168,216,240,0.28); background: rgba(168,216,240,0.05); color: #f0f4f8; }
-	.choice-card.sel   { border-color: #c9a96e; background: rgba(201,169,110,0.09); color: #c9a96e; }
+	.choice-card.sel   { border-color: rgba(168,216,240,0.7); background: rgba(168,216,240,0.07); color: #e0f4ff; box-shadow: 0 0 8px rgba(168,216,240,0.08); }
 
 	.url-wrap       { display: flex; flex-direction: column; gap: 0.5rem; }
 	.url-wrap label { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
@@ -474,19 +489,10 @@
 		color: #f0f4f8; font-size: 0.875rem; font-weight: 300;
 		width: 100%; transition: border-color 0.2s; border-radius: 2px;
 	}
-	input:focus, select:focus { outline: none; border-color: rgba(201,169,110,0.55); }
+	input:focus, select:focus { outline: none; border-color: rgba(168,216,240,0.55); box-shadow: 0 0 8px rgba(168,216,240,0.1); }
 	input::placeholder { color: rgba(255,255,255,0.25); }
+	input.err { border-color: rgba(248,113,113,0.9) !important; box-shadow: 0 0 12px rgba(248,113,113,0.35); background: rgba(248,113,113,0.08) !important; }
 
-	/* ── Budget unsicher checkbox (step 5) ── */
-	.unsicher-wrap {
-		display: flex; align-items: center; gap: 0.625rem; margin-top: 1rem;
-		cursor: pointer; font-size: 0.78rem; color: rgba(190,210,228,0.65);
-		text-transform: none; letter-spacing: 0; font-weight: 300;
-	}
-	.unsicher-wrap input[type="checkbox"] {
-		width: 16px; height: 16px; flex-shrink: 0; cursor: pointer;
-		accent-color: #c9a96e; padding: 0;
-	}
 	input:disabled { opacity: 0.35; cursor: not-allowed; }
 
 	/* ── Goals (step 4) ── */
@@ -498,22 +504,22 @@
 		font-size: 0.925rem; color: rgba(215,232,248,0.8);
 	}
 	.goal-item:hover { border-color: rgba(168,216,240,0.22); background: rgba(168,216,240,0.04); }
-	.goal-item.sel   { border-color: rgba(201,169,110,0.38); background: rgba(201,169,110,0.07); color: #f0f4f8; }
+	.goal-item.sel   { border-color: rgba(168,216,240,0.7); background: rgba(168,216,240,0.07); color: #e0f4ff; box-shadow: 0 0 8px rgba(168,216,240,0.08); }
 	.goal-check {
 		width: 18px; height: 18px; flex-shrink: 0;
 		border: 1px solid rgba(255,255,255,0.2); border-radius: 3px;
 		display: flex; align-items: center; justify-content: center;
-		font-size: 0.6rem; font-weight: 700; color: #c9a96e; transition: all 0.15s;
+		font-size: 0.6rem; font-weight: 700; color: #a8d8f0; transition: all 0.15s;
 	}
-	.goal-item.sel .goal-check { border-color: #c9a96e; background: rgba(201,169,110,0.15); }
+	.goal-item.sel .goal-check { border-color: #a8d8f0; background: rgba(168,216,240,0.15); }
 
 	/* ── Contact fields (step 6) ── */
 	.contact-fields { display: flex; flex-direction: column; gap: 1rem; }
 	.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 	.field { display: flex; flex-direction: column; gap: 0.45rem; }
 	label  { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.62); }
-	.req   { color: #c9a96e; }
 	.opt   { color: rgba(255,255,255,0.3); font-weight: 400; text-transform: none; letter-spacing: 0; }
+	.req   { color: rgba(168,216,240,0.7); font-weight: 600; }
 
 	/* ── Summary (step 7) ── */
 	.summary { display: flex; flex-direction: column; border-top: 1px solid rgba(255,255,255,0.06); margin-bottom: 1.75rem; }
@@ -521,7 +527,7 @@
 		display: flex; gap: 2rem; padding: 0.875rem 0;
 		border-bottom: 1px solid rgba(255,255,255,0.05); align-items: flex-start;
 	}
-	.sum-key { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #c9a96e; min-width: 110px; flex-shrink: 0; padding-top: 0.1rem; }
+	.sum-key { font-size: 0.82rem; font-weight: 600; color: #a8d8f0; min-width: 110px; flex-shrink: 0; padding-top: 0.1rem; }
 	.sum-val { font-size: 0.85rem; color: rgba(215,232,248,0.82); line-height: 1.65; }
 	.trust-line { font-size: 0.78rem; color: rgba(185,205,225,0.48); line-height: 1.8; font-style: italic; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; }
 	.form-error { font-size: 0.82rem; color: #f87171; margin-bottom: 1rem; padding: 0.875rem 1rem; background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2); border-radius: 2px; }
@@ -538,8 +544,8 @@
 	}
 	.btn-next:hover:not(.inactive):not(:disabled) { background: rgba(168,216,240,0.1); border-color: #a8d8f0; }
 	.btn-next.inactive { opacity: 0.3; cursor: not-allowed; }
-	.btn-next.btn-book { border-color: rgba(201,169,110,0.45); color: #c9a96e; padding: 0.875rem 2.5rem; }
-	.btn-next.btn-book:hover:not(:disabled) { background: rgba(201,169,110,0.1); border-color: #c9a96e; }
+	.btn-next.btn-book { border-color: rgba(168,216,240,0.35); color: #a8d8f0; padding: 0.875rem 2.5rem; }
+	.btn-next.btn-book:hover:not(:disabled) { background: rgba(168,216,240,0.1); border-color: #a8d8f0; }
 	.btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
 
 	/* ── Calendar section ── */
