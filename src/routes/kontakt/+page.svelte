@@ -68,12 +68,16 @@
 		formData.append('uhrzeit', `${selTime} Uhr`);
 
 		try {
-			await fetch('/', {
+			const response = await fetch('/', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 				body: new URLSearchParams(formData).toString()
 			});
-			console.log('✅ Erfolgreich gesendet');
+			if (response.ok) {
+				console.log('✅ Netlify hat es empfangen');
+			} else {
+				console.log('❌ Fehler:', response.status);
+			}
 		} catch (error) {
 			console.error('❌ Fehler:', error);
 		}
