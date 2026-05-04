@@ -54,11 +54,11 @@
 
 		const params = new URLSearchParams({
 			'form-name': 'projekt-anfrage',
-			vorname, nachname, email, telefon,
-			firma: firma || '–',
+			name: `${vorname} ${nachname}`,
+			email, telefon,
 			branche: brancheLabel,
 			website: hasWebsite === 'ja' ? (websiteUrl || 'Ja') : 'Nein',
-			ziele: ziele.join(', ') + (zielSonstiges ? ` / ${zielSonstiges}` : ''),
+			ziel: ziele.join(', ') + (zielSonstiges ? ` / ${zielSonstiges}` : ''),
 			budget: budgetUnsicher ? 'Noch unsicher' : (budget || 'keine Angabe'),
 			termin: `${ds}, ${selTime} Uhr`,
 		});
