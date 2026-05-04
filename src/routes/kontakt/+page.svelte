@@ -68,7 +68,7 @@
 		formData.append('uhrzeit', `${selTime} Uhr`);
 
 		try {
-			const response = await fetch('/', {
+			const response = await fetch('/netlify-form.html', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 				body: new URLSearchParams(formData).toString()
