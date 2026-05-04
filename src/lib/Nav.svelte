@@ -15,7 +15,7 @@
 	const links = [
 		{ href: '/leistungen', label: 'Leistungen' },
 		{ href: '/ablauf',     label: 'Ablauf'     },
-		{ href: '/referenzen', label: 'Referenzen' },
+		{ href: '/referenzen', label: 'Projekte' },
 	];
 
 	function close() { menuOpen = false; }
@@ -23,7 +23,9 @@
 
 <nav class:scrolled>
 	<div class="container nav-inner">
-		<a href="/" class="logo" onclick={close}>AURA</a>
+		<a href="/" class="logo" onclick={close}>
+			<img src="/logo.png" alt="AURA" />
+		</a>
 
 		<div class="links" class:open={menuOpen}>
 			{#each links as l}
@@ -31,7 +33,7 @@
 					{l.label}
 				</a>
 			{/each}
-			<a href="/kontakt" class="nav-cta" onclick={close}>Start Your Project →</a>
+			<a href="/kontakt" class="nav-cta" onclick={close}>Projekt starten →</a>
 		</div>
 
 		<button class="burger" onclick={() => menuOpen = !menuOpen} aria-label="Menu">
@@ -59,28 +61,12 @@
 	}
 	.nav-inner { display: flex; align-items: center; }
 	.logo {
-		font-family: 'Playfair Display', Georgia, serif;
-		font-size: 2rem; font-weight: 300; font-style: italic;
-		letter-spacing: 0.32em; flex: 1;
-		background: linear-gradient(
-			105deg,
-			#a8d8f0 0%, #a8d8f0 28%,
-			#e8f8ff 44%, #ffffff 50%,
-			#e8f8ff 56%, #a8d8f0 72%, #a8d8f0 100%
-		);
-		background-size: 300% auto;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-		animation: logoShimmer 4s ease-in-out infinite;
-		filter: drop-shadow(0 0 18px rgba(168,216,240,0.22));
+		flex: 1; display: flex; align-items: center;
+		filter: drop-shadow(0 0 14px rgba(168,216,240,0.18));
+		transition: filter 0.3s;
 	}
-	@keyframes logoShimmer {
-		0%, 58%  { background-position: 0% center; }
-		82%      { background-position: 150% center; }
-		100%     { background-position: 0% center; }
-	}
-	.logo:hover { filter: drop-shadow(0 0 32px rgba(168,216,240,0.5)); }
+	.logo img { height: 52px; width: auto; display: block; }
+	.logo:hover { filter: drop-shadow(0 0 28px rgba(168,216,240,0.45)); }
 	.links { display: flex; align-items: center; gap: 0.25rem; }
 	.links a:not(.nav-cta) {
 		padding: 0.5rem 0.875rem; font-size: 0.72rem; font-weight: 400;

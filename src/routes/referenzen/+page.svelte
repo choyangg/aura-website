@@ -2,83 +2,84 @@
 	import { reveal } from '$lib/actions.js';
 
 	const projects = [
-		{ src: '/projekte/livingspaces.png', cat: 'Immobilien',        title: 'LivingSpaces',  desc: 'Moderne Immobilien-Website mit Objektübersicht, Galerie und direktem Kontaktformular.' },
-		{ src: '/projekte/beauty.png',       cat: 'Beauty & Kosmetik', title: 'Lumina Studio', desc: 'Elegante Website mit Behandlungsübersicht, Preisliste und Online-Terminanfrage.' },
-		{ src: '/projekte/Holzwerk.png',     cat: 'Schreinerei',       title: 'Holzwerk',      desc: 'Handwerklicher Auftritt mit Referenzgalerie, Leistungen und Kontaktformular.' },
-		{ src: '/projekte/Oasis.png',        cat: 'Restaurant & Bar',  title: 'Oasis',         desc: 'Atmosphärische Website mit Speisekarte, Öffnungszeiten und Tischreservierung.' },
-		{ src: '/projekte/Physiovita.png',   cat: 'Physiotherapie',    title: 'PhysioVita',    desc: 'Vertrauensvoller Praxis-Auftritt mit Leistungen, Team-Vorstellung und Kontakt.' },
-		{ src: '/projekte/Zahnwerk.png',     cat: 'Zahnarztpraxis',    title: 'Zahnwerk',      desc: 'Professionelle Praxis-Website mit Behandlungsübersicht und Online-Terminbuchung.' },
-		{ src: '/projekte/green-vista.png',  cat: 'Immobilien',        title: 'Green Vista',   desc: 'Stilvolle Immobilien-Präsentation mit interaktiver Objektsuche und Galerie.' },
-		{ src: '/projekte/swiss-vita.png',   cat: 'Gesundheit',        title: 'Swiss Vita',    desc: 'Moderne Wellness-Website mit Angeboten, Terminbuchung und Kundenstimmen.' },
+		{ src: '/projekte/ref-1.png', name: 'Hausarztpraxis',    cat: 'Medizin & Familie' },
+		{ src: '/projekte/ref-2.png', name: 'Pure Balance',       cat: 'Beauty & Wellness' },
+		{ src: '/projekte/ref-3.png', name: 'LivingSpaces',       cat: 'Immobilien & Liegenschaften' },
+		{ src: '/projekte/ref-4.png', name: 'Naturheilpraxis',    cat: 'Gesundheit & Therapie' },
 	];
 
-	const testimonials = [
-		{ name: 'Klaus Berger',    role: 'Bäckerei Berger, Zürich',      text: '„Seit wir unsere neue Website haben, melden sich viel mehr Kunden. Unkompliziert, schnell, und das Ergebnis übertrifft unsere Erwartungen."' },
-		{ name: 'Sandra Hoffmann', role: 'Beauty Studio Lena, Bern',     text: '„Persönliche Betreuung von Anfang bis Ende. Immer jemand erreichbar, der erklärt was passiert. Klare Empfehlung."' },
-		{ name: 'Markus Huber',    role: 'Schreinerei Huber, Basel',     text: '„Professionell, pünktlich und preiswert. Die Website sieht genau so aus, wie ich es mir vorgestellt habe."' }
-	];
+	let lbOpen = $state(false);
+	let lbIdx  = $state(0);
+
+	function openLb(i) { lbIdx = i; lbOpen = true; }
+	function closeLb() { lbOpen = false; }
+	function lbNext()  { lbIdx = (lbIdx + 1) % projects.length; }
+	function lbPrev()  { lbIdx = (lbIdx - 1 + projects.length) % projects.length; }
+
+	$effect(() => {
+		if (!lbOpen) return;
+		const fn = (e) => {
+			if (e.key === 'Escape')     closeLb();
+			if (e.key === 'ArrowRight') lbNext();
+			if (e.key === 'ArrowLeft')  lbPrev();
+		};
+		window.addEventListener('keydown', fn);
+		return () => window.removeEventListener('keydown', fn);
+	});
 </script>
 
 <svelte:head>
-	<title>Referenzen – Aura</title>
+	<title>Projekte – Aura</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Montserrat:wght@400;500&display=swap" rel="stylesheet" />
 </svelte:head>
 
-<div class="page-hero">
+<!-- ══ HERO ══ -->
+<section class="ref-hero">
 	<div class="container">
-		<span class="eyebrow">Unsere Arbeiten</span>
-		<h1>Referenzen</h1>
-		<p>Websites, die wir für Schweizer Unternehmen realisiert haben.</p>
-	</div>
-</div>
-
-<section class="section section-black">
-	<div class="container">
-		<div class="proj-grid">
-			{#each projects as p, i}
-				<div class="proj-card" use:reveal={{ delay: (i % 3) * 60 }}>
-					<div class="proj-img">
-						<img src={p.src} alt={p.title} loading="lazy" />
-					</div>
-					<div class="proj-info">
-						<span class="proj-cat">{p.cat}</span>
-						<h3>{p.title}</h3>
-						<p>{p.desc}</p>
-					</div>
-				</div>
-			{/each}
+		<div class="rh-inner" use:reveal>
+			<span class="eyebrow">Unsere Arbeiten</span>
+			<h1 class="rh-title">Projekte, die<br /><em>für sich sprechen.</em></h1>
+			<p class="rh-sub">So könnte Ihre Website aussehen.</p>
 		</div>
 	</div>
 </section>
 
-<div class="img-strip">
-	<img
-		src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=80&auto=format&fit=crop"
-		alt="Modernes Büro"
-		loading="lazy"
-	/>
-	<div class="img-strip-overlay"></div>
+<!-- ══ SHOWCASE GRID ══ -->
+<div class="showcase">
+	<div class="sc-grid">
+		{#each projects as p, i}
+			<button class="sc-item sc-{i + 1}" onclick={() => openLb(i)}>
+				<img src={p.src} alt={p.name} loading="lazy" />
+				<div class="sc-overlay">
+					<div class="sc-info">
+						<span class="sc-name">{p.name}</span>
+						<span class="sc-cat">{p.cat}</span>
+					</div>
+				</div>
+			</button>
+		{/each}
+	</div>
 </div>
 
-<section class="section section-dark">
-	<div class="container">
-		<div class="t-header" use:reveal>
-			<span class="eyebrow">Kundenstimmen</span>
-			<h2 class="display t-title">Was unsere Kunden sagen</h2>
-		</div>
-		<div class="t-grid">
-			{#each testimonials as t, i}
-				<div class="t-card" use:reveal={{ delay: i * 80 }}>
-					<p class="t-text">{t.text}</p>
-					<footer>
-						<span class="t-name">{t.name}</span>
-						<span class="t-role">{t.role}</span>
-					</footer>
-				</div>
-			{/each}
-		</div>
+<!-- ══ LIGHTBOX ══ -->
+{#if lbOpen}
+<div class="lb-overlay" onclick={closeLb} role="dialog" aria-modal="true">
+	<button class="lb-close" onclick={closeLb} aria-label="Schliessen">✕</button>
+	<button class="lb-nav lb-prev" onclick={(e) => { e.stopPropagation(); lbPrev(); }} aria-label="Vorheriges">
+		<svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+	</button>
+	<div class="lb-img-wrap" onclick={(e) => e.stopPropagation()}>
+		<img src={projects[lbIdx].src} alt={projects[lbIdx].name} />
 	</div>
-</section>
+	<button class="lb-nav lb-next" onclick={(e) => { e.stopPropagation(); lbNext(); }} aria-label="Nächstes">
+		<svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+	</button>
+	<span class="lb-counter">{lbIdx + 1} / {projects.length}</span>
+</div>
+{/if}
 
+<!-- ══ CTA ══ -->
 <div class="cta-block">
 	<div class="container" use:reveal>
 		<span class="eyebrow">Nächstes Projekt</span>
@@ -91,46 +92,128 @@
 </div>
 
 <style>
-	/* Projects */
-	.proj-grid {
+	/* ── HERO ── */
+	.ref-hero {
+		padding: 10rem 0 5.5rem;
+		background: var(--bg0);
+		border-bottom: 1px solid var(--border);
+	}
+	.rh-inner { max-width: 680px; }
+	.rh-title {
+		font-family: var(--font-h);
+		font-size: clamp(2.8rem, 6vw, 5rem);
+		font-weight: 600; color: var(--text);
+		letter-spacing: -0.025em; line-height: 1.1;
+		margin: 0.75rem 0 1.5rem;
+	}
+	.rh-title em { font-style: italic; color: var(--ice); }
+	.rh-sub { color: var(--muted); font-size: 1.05rem; line-height: 1.8; }
+
+	/* ── SHOWCASE GRID ── */
+	.showcase { background: #060608; }
+	.sc-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1px;
-		background: rgba(255,255,255,0.05);
-		border: 1px solid rgba(255,255,255,0.05);
+		grid-template-columns: 1fr 1fr;
+		gap: 3px;
+		align-items: start;
 	}
-	.proj-card {
-		background: var(--black);
-		transition: background 0.3s;
-		display: flex;
-		flex-direction: column;
+
+
+	.sc-item {
+		position: relative;
+		border: none; padding: 2.5rem; cursor: pointer;
+		display: block; background: #0d0d14;
+		width: 100%;
 	}
-	.proj-card:hover { background: #0e0e14; }
-
-	.proj-img { overflow: hidden; }
-	.proj-img img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; transition: transform 0.4s cubic-bezier(0.16,1,0.3,1); }
-	.proj-card:hover .proj-img img { transform: scale(1.03); }
-
-	.proj-info { padding: 1.25rem 1.5rem 1.5rem; flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
-	.proj-cat { font-size: 0.62rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #c9a96e; }
-	.proj-info h3 { font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.92); }
-	.proj-info p { font-size: 0.83rem; color: rgba(195,212,228,0.78); line-height: 1.65; margin-top: 0.25rem; }
-
-	/* Testimonials */
-	.t-header { margin-bottom: 3rem; }
-	.t-title { font-size: clamp(2rem, 4vw, 3rem); color: #fff; margin-top: 0.25rem; }
-	.t-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); }
-	.t-card { background: var(--dark); padding: 2.5rem 2rem; display: flex; flex-direction: column; justify-content: space-between; gap: 2rem; }
-	.t-text { font-size: 0.9rem; color: rgba(195,212,228,0.82); line-height: 1.8; font-style: italic; }
-	.t-card footer { display: flex; flex-direction: column; gap: 0.3rem; }
-	.t-name { font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.85); }
-	.t-role { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
-
-	@media (max-width: 900px) {
-		.proj-grid { grid-template-columns: 1fr 1fr; }
-		.t-grid { grid-template-columns: 1fr; }
+	.sc-item img {
+		width: 100%;
+		height: auto;
+		display: block;
+		transition: transform 0.5s ease;
 	}
-	@media (max-width: 600px) {
-		.proj-grid { grid-template-columns: 1fr; }
+	.sc-item:hover img { transform: scale(1.02); }
+	.sc-item:active { background: #0d0d14; }
+	.sc-item:focus { outline: none; }
+
+	/* Overlay — nur unterer Gradient */
+	.sc-overlay {
+		position: absolute; inset: 0;
+		display: flex; align-items: flex-end;
+		background: linear-gradient(to top, rgba(4,4,12,0) 0%, transparent 100%);
+		transition: background 0.4s ease;
+	}
+	.sc-item:hover .sc-overlay {
+		background: linear-gradient(to top, rgba(4,4,12,0.92) 0%, rgba(4,4,12,0.4) 50%, transparent 75%);
+	}
+
+	.sc-info {
+		display: flex; flex-direction: column; gap: 0.5rem;
+		padding: 1.75rem 1.75rem;
+		opacity: 0; transform: translateY(10px);
+		transition: opacity 0.4s ease, transform 0.4s ease;
+		pointer-events: none;
+	}
+	.sc-item:hover .sc-info { opacity: 1; transform: translateY(0); }
+
+	.sc-name {
+		font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+		font-style: italic; font-weight: 400;
+		font-size: 2.4rem; color: #fff; line-height: 1.1;
+	}
+	.sc-cat {
+		font-family: 'Montserrat', 'DM Sans', sans-serif;
+		font-size: 0.68rem; font-weight: 500;
+		letter-spacing: 0.26em; text-transform: uppercase;
+		color: var(--ice);
+	}
+
+	/* ── LIGHTBOX ── */
+	.lb-overlay {
+		position: fixed; inset: 0; z-index: 1000;
+		background: rgba(4, 4, 12, 0.97);
+		display: flex; align-items: center; justify-content: center;
+		backdrop-filter: blur(8px);
+	}
+	.lb-img-wrap {
+		max-width: 92vw; max-height: 88vh;
+		display: flex; align-items: center; justify-content: center;
+	}
+	.lb-img-wrap img {
+		max-width: 100%; max-height: 88vh;
+		object-fit: contain; display: block;
+		box-shadow: 0 40px 120px rgba(0, 0, 0, 0.9);
+	}
+	.lb-close {
+		position: fixed; top: 1.5rem; right: 1.75rem;
+		background: none; border: none; cursor: pointer;
+		color: rgba(255,255,255,0.55); font-size: 1.5rem;
+		transition: color 0.2s; z-index: 1001; line-height: 1;
+	}
+	.lb-close:hover { color: #fff; }
+	.lb-nav {
+		position: fixed; top: 50%; transform: translateY(-50%);
+		background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+		color: #fff; cursor: pointer; width: 50px; height: 50px;
+		display: flex; align-items: center; justify-content: center;
+		border-radius: 2px; transition: background 0.2s; z-index: 1001;
+	}
+	.lb-nav:hover { background: rgba(255,255,255,0.16); }
+	.lb-prev { left: 1.5rem; }
+	.lb-next { right: 1.5rem; }
+	.lb-counter {
+		position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%);
+		font-size: 0.7rem; letter-spacing: 0.2em; color: rgba(255,255,255,0.4);
+		z-index: 1001;
+	}
+
+	/* ── RESPONSIVE ── */
+	@media (max-width: 768px) {
+		.ref-hero { padding: 8rem 0 4rem; }
+		.sc-grid { grid-template-columns: 1fr; }
+		.sc-item { padding: 1.5rem; }
+		.sc-name { font-size: 1.6rem; }
+	}
+	@media (max-width: 480px) {
+		.sc-item { padding: 0.5rem; }
 	}
 </style>

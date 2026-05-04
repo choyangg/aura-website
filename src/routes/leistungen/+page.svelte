@@ -5,20 +5,21 @@
 		{
 			num: '01',
 			title: 'Website-Erstellung',
-			desc: 'Sie haben noch keine Website oder möchten ganz von vorne beginnen? Wir erstellen Ihnen eine professionelle, moderne Website – von der ersten Idee bis zum fertigen Ergebnis.',
+			desc: 'Sie haben noch keine Website oder möchten ganz von vorne beginnen? Wir erstellen Ihnen eine professionelle, moderne Website. Von der ersten Idee bis zum fertigen Ergebnis.',
 			includes: [
 				'Individuelles Design nach Ihren Wünschen',
-				'Mobil-optimiert für alle Geräte',
-				'Kontaktformular und Google Maps',
+				'Mobil optimiert für alle Geräte',
+				'Professionelle Texte inklusive',
+				'Kontaktformular',
 				'Schnelle Ladezeiten',
-				'Grundlegende Suchmaschinenoptimierung',
-				'3 Monate Gratis-Support nach Launch'
+				'Auf Ihre Marke zugeschnitten',
+				'3 Monate Support nach Launch'
 			]
 		},
 		{
 			num: '02',
 			title: 'Website-Überarbeitung',
-			desc: 'Ihre Website ist in die Jahre gekommen? Wir modernisieren sie von Grund auf – neues Design, bessere Technik, aktueller Inhalt. Nahtlos und ohne Ausfallzeit.',
+			desc: 'Ihre Website ist in die Jahre gekommen? Wir modernisieren sie von Grund auf. Neues Design, bessere Technik, aktueller Inhalt. Nahtlos und ohne Ausfallzeit.',
 			includes: [
 				'Analyse der bestehenden Website',
 				'Neues, zeitgemässes Design',
@@ -28,19 +29,6 @@
 				'Nahtloser Übergang'
 			]
 		},
-		{
-			num: '03',
-			title: 'Wartung & Pflege',
-			desc: 'Eine Website braucht regelmässige Pflege. Wir übernehmen das für Sie – zuverlässig und unkompliziert, Monat für Monat, ohne dass Sie sich darum kümmern müssen.',
-			includes: [
-				'Monatliche technische Updates',
-				'Sicherheits-Checks und Backups',
-				'Texte und Bilder aktualisieren',
-				'Technischer Support',
-				'Performance überwachen',
-				'Persönlicher Ansprechpartner'
-			]
-		}
 	];
 
 </script>
@@ -53,16 +41,16 @@
 	<div class="container">
 		<span class="eyebrow">Was wir tun</span>
 		<h1>Unsere Leistungen</h1>
-		<p>Alles rund um Ihre Website – aus einer Hand, mit persönlicher Betreuung.</p>
+		<p>Alles rund um Ihre Website. Aus einer Hand, mit persönlicher Betreuung.</p>
 	</div>
 </div>
 
-<section class="section section-black">
+<section class="section section-black srv-section">
 	<div class="container">
 		{#each services as s, i}
 			<div class="srv-block" use:reveal>
 				<div class="srv-intro">
-					<span class="eyebrow">{s.num}</span>
+					<span class="srv-num">{s.num}</span>
 					<h2 class="display">{s.title}</h2>
 					<p class="srv-desc">{s.desc}</p>
 					<a href="/kontakt" class="btn-border" style="margin-top:2rem">Anfrage stellen</a>
@@ -86,18 +74,21 @@
 	</div>
 </section>
 
-<div class="cta-block">
-	<div class="container" use:reveal>
-		<span class="eyebrow">Los geht's</span>
-		<h2>Welche Leistung<br /><em>brauchen Sie?</em></h2>
-		<p>Wir beraten Sie kostenlos und unverbindlich.</p>
-		<div class="cta-actions">
-			<a href="/kontakt" class="btn-border">Kostenlos anfragen</a>
-		</div>
-	</div>
-</div>
 
 <style>
+	.srv-section { padding-top: 1rem; }
+	.srv-num {
+		display: inline-block;
+		font-family: 'Playfair Display', Georgia, serif;
+		font-size: clamp(1.6rem, 3vw, 2.2rem);
+		font-weight: 400;
+		color: var(--ice);
+		letter-spacing: -0.02em;
+		line-height: 1;
+		margin-bottom: 0.75rem;
+	}
+	:global(.page-hero p) { max-width: none; white-space: nowrap; }
+
 	.srv-block {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
@@ -114,18 +105,23 @@
 	.srv-desc { font-size: 0.95rem; color: rgba(200,218,235,0.85); line-height: 1.85; }
 
 	.includes-label {
-		font-size: 0.65rem;
+		font-size: 0.82rem;
 		font-weight: 500;
 		letter-spacing: 0.2em;
 		text-transform: uppercase;
-		color: #c9a96e;
+		color: var(--ice);
 		margin-bottom: 1.5rem;
 	}
 	.srv-includes ul { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
-	.srv-includes li { display: flex; gap: 1rem; font-size: 0.9rem; color: rgba(200,218,235,0.82); }
-	.dot { color: #c9a96e; flex-shrink: 0; }
+	.srv-includes li { display: flex; gap: 1rem; font-size: 0.9rem; color: rgba(230,242,252,0.95); }
+	.dot { color: var(--ice); flex-shrink: 0; }
 
 	@media (max-width: 768px) {
 		.srv-block { grid-template-columns: 1fr; gap: 3rem; padding: 4rem 0; }
+		:global(.page-hero p) { white-space: normal; }
+	}
+	@media (max-width: 480px) {
+		.srv-block { gap: 2rem; padding: 3rem 0; }
+		.srv-intro h2 { font-size: 1.5rem; }
 	}
 </style>

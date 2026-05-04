@@ -4,61 +4,34 @@
 	let scrolled = $state(false);
 	let menuOpen = $state(false);
 
-	// ── Kalender ──
-	const monthNames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-	const calTimes = ['09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'];
-	const _now = new Date();
-	let calMonth = $state(_now.getMonth());
-	let calYear  = $state(_now.getFullYear());
-	let calSelDate = $state(null);
-	let calSelTime = $state('');
-
-	function calDays(y, m) { return new Date(y, m + 1, 0).getDate(); }
-	function calOffset(y, m) { const d = new Date(y, m, 1).getDay(); return d === 0 ? 6 : d - 1; }
-	function isWeekend(y, m, d) { const wd = new Date(y,m,d).getDay(); return wd===0||wd===6; }
-	function isPast(y, m, d) { const t=new Date(); t.setHours(0,0,0,0); return new Date(y,m,d)<t; }
-	function calCanPrev() { return !(calYear===_now.getFullYear()&&calMonth===_now.getMonth()); }
-	function calCanNext() {
-		const max = new Date(_now.getFullYear(), _now.getMonth()+3, 1);
-		return new Date(calYear, calMonth+1, 1) < max;
-	}
-	function calPrev() { if(!calCanPrev()) return; if(calMonth===0){calMonth=11;calYear--;}else calMonth--; }
-	function calNext() { if(!calCanNext()) return; if(calMonth===11){calMonth=0;calYear++;}else calMonth++; }
-	function calSelect(d) {
-		if(isPast(calYear,calMonth,d)) return;
-		calSelDate={y:calYear,m:calMonth,d}; calSelTime='';
-	}
-	function confirmSlot() {
-		if(!calSelDate||!calSelTime) return;
-		const date = new Date(calSelDate.y,calSelDate.m,calSelDate.d);
-		const dateStr = date.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long'});
-		const subject = encodeURIComponent(`Terminanfrage: ${dateStr}, ${calSelTime} Uhr`);
-		const body = encodeURIComponent(
-			`Guten Tag,\n\n` +
-			`ich habe einen Termin für ein kostenloses, unverbindliches 15-Minuten Gespräch gebucht:\n\n` +
-			`${dateStr}, ${calSelTime} Uhr\n\n` +
-			`Damit wir uns optimal vorbereiten können, wären folgende Informationen hilfreich:\n\n` +
-			`Firmenname:\n` +
-			`Website (falls vorhanden):\n` +
-			`Besondere Wünsche:\n\n` +
-			`Vielen Dank und bis bald.\n\n` +
-			`Freundliche Grüsse`
-		);
-		window.location.href = `mailto:information.auramarketing@gmail.com?subject=${subject}&body=${body}`;
-	}
-
 	const projs = [
-		{ src: '/projekte/livingspaces.png', cat: 'Immobilien',          name: 'LivingSpaces'  },
-		{ src: '/projekte/beauty.png',       cat: 'Beauty & Kosmetik',   name: 'Lumina Studio' },
-		{ src: '/projekte/Holzwerk.png',     cat: 'Schreinerei',         name: 'Holzwerk'      },
-		{ src: '/projekte/Oasis.png',        cat: 'Restaurant & Bar',    name: 'Oasis'         },
-		{ src: '/projekte/Physiovita.png',   cat: 'Physiotherapie',      name: 'PhysioVita'    },
-		{ src: '/projekte/Zahnwerk.png',     cat: 'Zahnarztpraxis',      name: 'Zahnwerk'      },
-		{ src: '/projekte/green-vista.png',  cat: 'Immobilien',          name: 'Green Vista'   },
-		{ src: '/projekte/swiss-vita.png',   cat: 'Gesundheit',          name: 'Swiss Vita'    },
+		{ src: '/projekte/proj-1.png' },
+		{ src: '/projekte/proj-2.png' },
+		{ src: '/projekte/proj-3.png' },
+		{ src: '/projekte/proj-4.png' },
+		{ src: '/projekte/proj-5.png' },
+		{ src: '/projekte/proj-6.png' },
 	];
 	let projClip = $state(null);
 	let projIndex = $state(0);
+	let lbOpen  = $state(false);
+	let lbIndex = $state(0);
+
+	function openLb(i) { lbIndex = i; lbOpen = true; }
+	function closeLb()  { lbOpen = false; }
+	function lbNext()   { lbIndex = (lbIndex + 1) % projs.length; }
+	function lbPrev()   { lbIndex = (lbIndex - 1 + projs.length) % projs.length; }
+
+	$effect(() => {
+		if (!lbOpen) return;
+		const onKey = (e) => {
+			if (e.key === 'Escape')      closeLb();
+			if (e.key === 'ArrowRight')  lbNext();
+			if (e.key === 'ArrowLeft')   lbPrev();
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	});
 
 	function projScroll(dir) {
 		if (!projClip) return;
@@ -77,7 +50,7 @@
 	const links = [
 		{ href: '/leistungen',  label: 'Leistungen'  },
 		{ href: '/ablauf',      label: 'Ablauf'      },
-		{ href: '/referenzen',  label: 'Referenzen'  },
+		{ href: '/referenzen',  label: 'Projekte'  },
 	];
 
 	$effect(() => {
@@ -138,7 +111,9 @@
 <!-- ══ HOME NAV ══ -->
 <nav class="home-nav" class:scrolled>
 	<div class="container nav-inner">
-		<a href="/" class="logo" onclick={() => menuOpen = false}>AURA</a>
+		<a href="/" class="logo" onclick={() => menuOpen = false}>
+			<img src="/logo.png" alt="AURA" />
+		</a>
 		<div class="links" class:open={menuOpen}>
 			{#each links as l}
 				<a href={l.href} onclick={() => menuOpen = false}>{l.label}</a>
@@ -196,77 +171,91 @@
 
 	<div class="container hero-inner">
 
-		<div class="hero-tag">
-			<span class="tag-line"></span>
-			Web Design Studio · Schweiz
+		<div class="hero-left">
+			<h1 class="hero-heading">
+				<span class="reveal-line">
+					<span class="reveal-word" style="animation-delay:0.25s">Erfolg, der niemals schläft.</span>
+				</span>
+				<span class="reveal-line accent-line">
+					<span class="reveal-word accent" style="animation-delay:0.45s">Ihre Website macht's möglich.</span>
+				</span>
+			</h1>
+
+			<div class="hero-foot">
+				<div class="hero-accent-line"></div>
+				<p class="hero-sub">
+					Massgeschneiderte Websites für Schweizer Unternehmen.
+				</p>
+				<div class="hero-actions">
+					<a href="/kontakt" class="btn-ice">Projekt starten →</a>
+					<a href="/referenzen" class="hero-link">Arbeiten ansehen ↓</a>
+				</div>
+			</div>
 		</div>
 
-		<h1 class="hero-heading">
-			<span class="reveal-line">
-				<span class="reveal-word" style="animation-delay:0.25s">Websites That Work</span>
-			</span>
-			<span class="reveal-line">
-				<span class="reveal-word accent" style="animation-delay:0.45s">While You Sleep.</span>
-			</span>
-		</h1>
-
-		<div class="hero-foot">
-			<div class="hero-accent-line"></div>
-			<p class="hero-sub">
-				Massgeschneiderte Webseiten für Schweizer Unternehmen —
-				die rund um die Uhr neue Kunden gewinnen. In 2 Wochen live.
-			</p>
-			<div class="hero-actions">
-				<a href="/kontakt" class="btn-ice">Projekt starten →</a>
-				<a href="/referenzen" class="hero-link">Arbeiten ansehen ↓</a>
+		<div class="hero-stats">
+			<div class="hstat">
+				<span class="hstat-num">50+</span>
+				<span class="hstat-label">Projekte realisiert</span>
+			</div>
+			<div class="hstat-sep"></div>
+			<div class="hstat">
+				<span class="hstat-num">100%</span>
+				<span class="hstat-label">Schweizer Qualität</span>
+			</div>
+			<div class="hstat-sep"></div>
+			<div class="hstat">
+				<span class="hstat-num">2 Wo.</span>
+				<span class="hstat-label">bis Ihre Website live ist</span>
 			</div>
 		</div>
 
 	</div>
 
 </section>
-
-<!-- ══ MARQUEE ══ -->
-<div class="marquee-wrap">
-	<div class="marquee-track">
-		{#each Array(2) as _}
-			<span>Individuelles Design</span><span class="dot">·</span>
-			<span>Schnelle Umsetzung</span><span class="dot">·</span>
-			<span>Mobile-First</span><span class="dot">·</span>
-			<span>SEO-optimiert</span><span class="dot">·</span>
-			<span>Schweizer Qualität</span><span class="dot">·</span>
-			<span>2 Wochen live</span><span class="dot">·</span>
-			<span>Kein Template</span><span class="dot">·</span>
-			<span>Persönlicher Support</span><span class="dot">·</span>
-		{/each}
-	</div>
 </div>
 
-<!-- ══ STATS ══ -->
-<section class="stats-full">
-	<div class="container stats-inner">
-		<div class="stat" data-reveal>
-			<span class="stat-num">2 Wo.</span>
-			<span class="stat-label">Bis sie live ist</span>
+<!-- ══ PHILOSOPHIE (hell) ══ -->
+<section class="philosophy">
+	<div class="container">
+		<div class="philo-top" data-reveal>
+			<span class="philo-eyebrow">Unsere Überzeugung</span>
+			<p class="philo-text">
+				Eine Website ist kein Projekt.<br/>
+				Sie ist Ihr <em>stärkster Verkäufer</em>.
+			</p>
 		</div>
-		<div class="stat-div"></div>
-		<div class="stat" data-reveal data-delay="80">
-			<span class="stat-num">100%</span>
-			<span class="stat-label">Festpreis garantiert</span>
-		</div>
-		<div class="stat-div"></div>
-		<div class="stat" data-reveal data-delay="160">
-			<span class="stat-num">5★</span>
-			<span class="stat-label">Kundenbewertungen</span>
-		</div>
-		<div class="stat-div"></div>
-		<div class="stat" data-reveal data-delay="240">
-			<span class="stat-num">1:1</span>
-			<span class="stat-label">Persönliche Betreuung</span>
+		<div class="philo-bottom" data-reveal>
+			<div class="philo-lead">
+				<p class="philo-lead-title">Was wir für Sie möglich machen.</p>
+				<p class="philo-lead-sub">Wir bauen Websites, die Vertrauen schaffen, überzeugen und messbar Anfragen generieren.</p>
+			</div>
+			<div class="philo-cards">
+				<div class="philo-card">
+					<span class="philo-card-icon">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+					</span>
+					<h3>Online-Terminbuchung</h3>
+					<p>Ihre Kunden buchen direkt auf Ihrer Website. Rund um die Uhr, ohne Anruf, ohne Wartezeit. Voller Kalender, weniger Aufwand.</p>
+				</div>
+				<div class="philo-card">
+					<span class="philo-card-icon">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+					</span>
+					<h3>Selbst anpassen, wann Sie wollen</h3>
+					<p>Öffnungszeiten, Angebote, Bilder. Sie aktualisieren Ihre Website selbst. Einfach, schnell, ohne technisches Wissen. Keine Agentur, kein Warten.</p>
+				</div>
+				<div class="philo-card">
+					<span class="philo-card-icon">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+					</span>
+					<h3>Digitale Entlastung</h3>
+					<p>Ihre Website arbeitet auch wenn Sie schlafen. Sie antwortet, informiert und überzeugt. Weniger Aufwand für Sie, mehr Infos für Ihre Kunden.</p>
+				</div>
+			</div>
 		</div>
 	</div>
 </section>
-</div>
 
 <!-- ══ PROCESS ══ -->
 <section class="section section-soft" id="ablauf">
@@ -278,10 +267,10 @@
 		<div class="process-steps">
 			<div class="process-line"></div>
 			{#each [
-				{ n: '01', title: 'Gespräch',  desc: 'Wir lernen dein Unternehmen kennen und verstehen deine Ziele.' },
-				{ n: '02', title: 'Konzept',   desc: 'Wir erstellen ein massgeschneidertes Design-Konzept für dich.' },
-				{ n: '03', title: 'Umsetzung', desc: 'Wir bauen deine Website — präzise, schnell und responsiv.' },
-				{ n: '04', title: 'Launch',    desc: 'Deine Website geht live. Wir sind weiterhin für dich da.' },
+				{ n: '01', title: 'Gespräch',  desc: 'Wir lernen Ihr Unternehmen kennen und verstehen Ihre Ziele.' },
+				{ n: '02', title: 'Konzept',   desc: 'Wir erstellen ein massgeschneidertes Design-Konzept für Sie.' },
+				{ n: '03', title: 'Umsetzung', desc: 'Wir bauen Ihre Website. Präzise, schnell und responsiv.' },
+				{ n: '04', title: 'Launch',    desc: 'Ihre Website geht live. Wir sind weiterhin für Sie da.' },
 			] as step, i}
 				<div class="process-step" data-reveal data-delay={i * 100}>
 					<div class="step-num">{step.n}</div>
@@ -308,19 +297,11 @@
 			</button>
 			<div class="proj-clip" bind:this={projClip} onscroll={onProjScroll}>
 				{#each projs as p, i}
-					<a href="/referenzen" class="proj-slide">
+					<button class="proj-slide" onclick={() => openLb(i)}>
 						<div class="proj-img-wrap">
-							<img src={p.src} alt={p.name} loading="lazy" />
-							<div class="proj-overlay">
-								<span class="proj-overlay-cat">{p.cat}</span>
-								<span class="proj-overlay-name">{p.name}</span>
-							</div>
+							<img src={p.src} alt="Projekt" loading="lazy" />
 						</div>
-						<div class="proj-caption">
-							<span class="proj-cat">{p.cat}</span>
-							<span class="proj-name">{p.name}</span>
-						</div>
-					</a>
+					</button>
 				{/each}
 			</div>
 			<button class="proj-arrow proj-next" onclick={() => projScroll(1)} aria-label="Weiter">
@@ -334,100 +315,51 @@
 				{/each}
 			</div>
 			<span class="proj-counter">{projIndex + 1} / {projs.length}</span>
-			<a href="/referenzen" class="proj-link">Alle Projekte ansehen →</a>
+			<a href="/referenzen" class="proj-link">Projekte →</a>
 		</div>
 	</div>
 </section>
 
-<!-- ══ PHILOSOPHIE (weiss) ══ -->
-<section class="philosophy">
-	<div class="container philo-inner" data-reveal>
-		<span class="philo-eyebrow">Unsere Überzeugung</span>
-		<p class="philo-text">
-			Eine Website ist kein Projekt.<br/>
-			Sie ist dein <em>stärkster Mitarbeiter</em> —<br/>
-			einer, der rund um die Uhr arbeitet.
-		</p>
-		<p class="philo-sub">Wir gestalten keine schönen Seiten. Wir bauen Systeme, die Vertrauen aufbauen, Kunden überzeugen und dein Unternehmen wachsen lassen — bevor du auch nur ein Wort gesagt hast.</p>
+<!-- ══ LIGHTBOX ══ -->
+{#if lbOpen}
+<div class="lb-overlay" onclick={closeLb} role="dialog" aria-modal="true">
+	<button class="lb-close" onclick={closeLb} aria-label="Schliessen">✕</button>
+	<button class="lb-nav lb-prev" onclick={(e) => { e.stopPropagation(); lbPrev(); }} aria-label="Vorheriges Bild">
+		<svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+	</button>
+	<div class="lb-img-wrap" onclick={(e) => e.stopPropagation()}>
+		<img src={projs[lbIndex].src} alt="Projekt {lbIndex + 1}" />
 	</div>
-</section>
-
-<!-- ══ TERMIN BUCHEN ══ -->
-<section class="booking-section">
-	<div class="container" data-reveal>
-		<div class="booking-head">
-			<span class="eyebrow">Kostenloses Erstgespräch</span>
-			<h2 class="booking-title">15 Minuten,<br/><em>die alles verändern.</em></h2>
-			<p class="booking-sub">Kein Druck. Keine Verpflichtung. Wähle einfach einen freien Slot.</p>
-		</div>
-
-		<div class="cal-wrap">
-			<div class="cal-nav">
-				<button class="cal-arrow" onclick={calPrev} disabled={!calCanPrev()} aria-label="Vorheriger Monat">←</button>
-				<span class="cal-title">{monthNames[calMonth]} {calYear}</span>
-				<button class="cal-arrow" onclick={calNext} disabled={!calCanNext()} aria-label="Nächster Monat">→</button>
-			</div>
-			<div class="cal-grid">
-				{#each ['Mo','Di','Mi','Do','Fr','Sa','So'] as h}
-					<div class="cal-head">{h}</div>
-				{/each}
-				{#each Array(calOffset(calYear, calMonth)) as _}
-					<div></div>
-				{/each}
-				{#each Array(calDays(calYear, calMonth)) as _, i}
-					{@const day = i + 1}
-					{@const off = isPast(calYear,calMonth,day)}
-					{@const sel = calSelDate?.y===calYear && calSelDate?.m===calMonth && calSelDate?.d===day}
-					<button class="cal-day" class:cal-off={off} class:cal-sel={sel}
-						onclick={() => calSelect(day)} disabled={off}>{day}</button>
-				{/each}
-			</div>
-			{#if calSelDate}
-				<div class="cal-time-row">
-					<label class="cal-time-label" for="cal-time">Uhrzeit wählen</label>
-					<select id="cal-time" class="cal-select" bind:value={calSelTime}>
-						<option value="" disabled>-- Uhrzeit --</option>
-						{#each calTimes as t}
-							<option value={t}>{t} Uhr</option>
-						{/each}
-					</select>
-				</div>
-			{/if}
-		</div>
-
-		<div class="booking-confirm">
-			{#if calSelDate && calSelTime}
-				{@const d = new Date(calSelDate.y,calSelDate.m,calSelDate.d)}
-				<p class="selected-info">Gewählt: <strong>{d.toLocaleDateString('de-CH',{weekday:'short',day:'numeric',month:'short'})} · {calSelTime} Uhr</strong></p>
-			{/if}
-			<button class="confirm-btn" class:active={!!(calSelDate&&calSelTime)}
-				onclick={confirmSlot} disabled={!calSelDate||!calSelTime}>
-				{calSelDate&&calSelTime ? 'Termin bestätigen →' : 'Datum & Uhrzeit wählen'}
-			</button>
-		</div>
-	</div>
-</section>
+	<button class="lb-nav lb-next" onclick={(e) => { e.stopPropagation(); lbNext(); }} aria-label="Nächstes Bild">
+		<svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+	</button>
+	<span class="lb-counter">{lbIndex + 1} / {projs.length}</span>
+</div>
+{/if}
 
 <!-- ══ FOOTER ══ -->
 <footer class="home-footer">
 	<div class="top-line"></div>
 	<div class="container footer-inner">
 		<div class="brand">
-			<a href="/" class="logo">AURA</a>
-			<p>Websites That Work While You Sleep.</p>
+			<a href="/" class="logo">
+				<img src="/logo.png" alt="AURA" />
+			</a>
+			<p>Erfolg, der niemals schläft.</p>
 		</div>
 		<div class="cols">
 			<div class="col">
 				<h4>Navigation</h4>
 				<a href="/leistungen">Leistungen</a>
 				<a href="/ablauf">Ablauf</a>
+				<a href="/referenzen">Projekte</a>
 				<a href="/kontakt">Kontakt</a>
 			</div>
 			<div class="col">
 				<h4>Kontakt</h4>
 				<a href="mailto:information.auramarketing@gmail.com">information.auramarketing@gmail.com</a>
 				<a href="tel:+41767020406">+41 76 702 04 06</a>
-				<span>Schweiz · Mo–Fr 9–18</span>
+				<span>Schweiz · Di bis So · 9 bis 18 Uhr</span>
 			</div>
 		</div>
 	</div>
@@ -472,28 +404,12 @@
 
 	/* ── Logo ── */
 	.logo {
-		font-family: 'Playfair Display', Georgia, serif;
-		font-size: 2rem; font-weight: 300; font-style: italic;
-		letter-spacing: 0.32em; flex: 1;
-		background: linear-gradient(
-			105deg,
-			#a8d8f0 0%, #a8d8f0 25%,
-			#e0f4ff 42%, #ffffff 50%,
-			#e0f4ff 58%, #a8d8f0 75%, #a8d8f0 100%
-		);
-		background-size: 300% auto;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-		animation: logoShimmer 4s ease-in-out infinite;
-		filter: drop-shadow(0 0 20px rgba(168,216,240,0.25));
+		flex: 1; display: flex; align-items: center;
+		filter: drop-shadow(0 0 14px rgba(168,216,240,0.18));
+		transition: filter 0.3s;
 	}
-	@keyframes logoShimmer {
-		0%, 58% { background-position: 0% center; }
-		82%     { background-position: 150% center; }
-		100%    { background-position: 0% center; }
-	}
-	.logo:hover { filter: drop-shadow(0 0 36px rgba(168,216,240,0.6)); }
+	.logo img { height: 52px; width: auto; display: block; }
+	.logo:hover { filter: drop-shadow(0 0 28px rgba(168,216,240,0.5)); }
 
 	.links { display: flex; align-items: center; gap: 0.25rem; }
 	.links a:not(.nav-cta) {
@@ -530,7 +446,7 @@
 	   HERO
 	══════════════════════════════ */
 	.hero {
-		min-height: calc(100vh - 6rem); display: flex; align-items: center;
+		min-height: 90vh; display: flex; align-items: center;
 		background: #04040c; position: relative; overflow: hidden;
 	}
 
@@ -670,31 +586,23 @@
 	/* ── Hero content ── */
 	.hero-inner {
 		position: relative; z-index: 4;
-		padding-top: 5.5rem; padding-bottom: 3.5rem;
+		padding-top: 5rem; padding-bottom: 0;
 		width: 100%;
+		display: flex; align-items: stretch; justify-content: space-between; gap: 4rem;
 	}
-
-	/* ── Tag ── */
-	.hero-tag {
-		display: flex; align-items: center; gap: 1rem;
-		font-size: 0.62rem; font-weight: 500; letter-spacing: 0.24em;
-		text-transform: uppercase; color: rgba(168,216,240,0.75);
-		margin-bottom: 2.5rem;
-		opacity: 0; animation: tagIn 0.8s ease 0.1s both;
-	}
-	.tag-line { width: 32px; height: 1px; background: rgba(168,216,240,0.3); flex-shrink: 0; }
-	@keyframes tagIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+	.hero-left { flex: 1; min-width: 0; padding-bottom: 3rem; }
 
 	/* ── Word reveal heading ── */
 	.hero-heading {
 		margin: 0 0 2rem;
 		font-family: 'Playfair Display', Georgia, serif;
-		font-size: clamp(2.2rem, 4.5vw, 4.8rem);
+		font-size: clamp(1.9rem, 3.8vw, 4rem);
 		font-weight: 600; letter-spacing: -0.03em; line-height: 1.05;
 	}
 	.reveal-line {
 		display: block; overflow: hidden; padding-bottom: 0.08em;
 	}
+	.accent-line { padding-bottom: 0.12em; }
 	.reveal-word {
 		display: block; color: #f0f4f8;
 		transform: translateY(110%);
@@ -702,7 +610,8 @@
 	}
 	.reveal-word.accent {
 		font-style: italic; color: #7ec8e3;
-		text-shadow: 0 0 100px rgba(56,189,248,0.5), 0 0 200px rgba(126,200,227,0.2);
+		font-size: clamp(1.4rem, 3.4vw, 3.7rem);
+		text-shadow: 0 0 80px rgba(56,189,248,0.4), 0 0 160px rgba(126,200,227,0.15);
 	}
 	@keyframes wordUp { to { transform: translateY(0); } }
 
@@ -758,77 +667,73 @@
 	.btn-ice:hover::after { animation: btnShimmerFast 0.5s ease forwards; }
 	@keyframes btnShimmerFast { from { left: -120%; } to { left: 130%; } }
 
-	/* ── Marquee ── */
-	.marquee-wrap {
-		overflow: hidden; background: rgba(168,216,240,0.04);
-		border-top: 1px solid rgba(168,216,240,0.1);
-		border-bottom: 1px solid rgba(168,216,240,0.1);
-		padding: 0.875rem 0;
-	}
-	.marquee-track {
-		display: flex; white-space: nowrap;
-		animation: marquee 32s linear infinite; width: max-content;
-	}
-	.marquee-track span {
-		font-size: 0.63rem; font-weight: 500; letter-spacing: 0.2em;
-		text-transform: uppercase; color: rgba(168,216,240,0.78); padding: 0 1.5rem;
-	}
-	.marquee-track .dot { color: rgba(168,216,240,0.45); padding: 0; }
-	@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
 	/* ── First Screen Wrapper ── */
-	.first-screen {
-		min-height: 100vh;
-		display: flex; flex-direction: column;
-	}
-	.first-screen .hero { flex: 1; min-height: unset; }
+	.first-screen { position: relative; }
 
-	/* ── Stats Bar ── */
-	.stats-full {
-		background: #060608;
-		border-top: 1px solid rgba(168,216,240,0.08);
-		flex-shrink: 0;
+	/* ── Hero stats (right column) ── */
+	.hero-stats {
+		display: flex; flex-direction: column; gap: 0;
+		align-self: flex-end; padding-bottom: 3rem;
+		text-align: right; flex-shrink: 0; width: 28%;
 	}
-	.stats-inner {
-		display: flex; align-items: center; justify-content: center;
-		gap: 0; flex-wrap: wrap; padding: 2rem 0;
-	}
-	.stat { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 0 3rem; }
-	.stat-num {
+	.hstat { padding: 1.5rem 0; }
+	.hstat-num {
+		display: block;
 		font-family: 'Playfair Display', Georgia, serif;
-		font-size: clamp(1.75rem, 3vw, 2.5rem); font-weight: 600;
-		color: #f0f4f8; letter-spacing: -0.02em; line-height: 1;
+		font-size: clamp(1.9rem, 2.8vw, 2.6rem);
+		font-weight: 600; color: rgba(240,244,248,0.88);
+		letter-spacing: -0.02em; line-height: 1;
+		margin-bottom: 0.4rem;
 	}
-	.stat-label {
-		font-size: 0.62rem; font-weight: 500; letter-spacing: 0.18em;
-		text-transform: uppercase; color: rgba(255,255,255,0.72);
+	.hstat-label {
+		display: block;
+		font-size: 0.66rem; font-weight: 400; letter-spacing: 0.16em;
+		text-transform: uppercase; color: rgba(255,255,255,0.4);
 	}
-	.stat-div { width: 1px; height: 2.5rem; background: rgba(168,216,240,0.1); flex-shrink: 0; }
-	@media (max-width: 768px) {
-		.stats-inner { gap: 1.5rem; flex-wrap: wrap; padding: 1.5rem 0; }
-		.stat { padding: 0 1.25rem; }
-		.stat-div { display: none; }
-	}
+	.hstat-sep { height: 1px; background: rgba(168,216,240,0.06); }
 
 	/* ── Philosophie ── */
-	.philosophy { background: #06060a; padding: 7rem 0; }
-	.philo-inner { max-width: 780px; }
+	.philosophy { background: #f2f0ec; padding: 7rem 0; }
+	.philo-top { margin-bottom: 4rem; }
 	.philo-eyebrow {
 		display: inline-block; font-size: 0.62rem; font-weight: 600;
 		letter-spacing: 0.22em; text-transform: uppercase;
-		color: rgba(255,255,255,0.78); margin-bottom: 2rem;
+		color: rgba(14,14,22,0.5); margin-bottom: 2rem;
 	}
 	.philo-text {
 		font-family: 'Playfair Display', Georgia, serif;
 		font-size: clamp(2rem, 4vw, 3.25rem);
 		font-weight: 600; line-height: 1.25; letter-spacing: -0.02em;
-		color: #f0f4f8; margin-bottom: 2rem;
+		color: #0e0e16; margin-bottom: 0;
 	}
-	.philo-text em { font-style: italic; color: #7ec8e3; }
-	.philo-sub {
-		font-size: 1rem; color: rgba(205,225,242,0.88); line-height: 1.8;
-		max-width: 560px;
+	.philo-text em { font-style: italic; color: #1a4a6b; }
+
+	.philo-lead { margin-bottom: 2.5rem; max-width: 680px; }
+	.philo-lead-title {
+		font-family: 'Cormorant Garamond', Georgia, serif;
+		font-size: clamp(1.7rem, 3vw, 2.6rem);
+		font-weight: 400; color: #0e0e16;
+		letter-spacing: 0.01em; line-height: 1.3; margin-bottom: 0.875rem;
 	}
+	.philo-lead-sub { font-size: 1.05rem; color: rgba(14,14,22,0.58); line-height: 1.8; white-space: nowrap; }
+
+	.philo-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+	.philo-card {
+		background: #fff; border-top: 2px solid #1a4a6b; border-radius: 6px;
+		padding: 2rem 1.75rem;
+		box-shadow: 0 2px 16px rgba(14,14,22,0.06);
+		transition: box-shadow 0.3s, transform 0.3s;
+	}
+	.philo-card:hover {
+		box-shadow: 0 6px 32px rgba(26,74,107,0.18), 0 2px 16px rgba(14,14,22,0.08);
+		transform: translateY(-3px);
+	}
+	.philo-card-icon { display: block; color: #1a4a6b; margin-bottom: 1.25rem; }
+	.philo-card h3 {
+		font-size: 1rem; font-weight: 600; color: #0e0e16;
+		margin-bottom: 0.75rem; letter-spacing: -0.01em;
+	}
+	.philo-card p { font-size: 0.875rem; color: rgba(14,14,22,0.62); line-height: 1.8; }
 
 	/* ── Sections ── */
 	.section { padding: 9rem 0; }
@@ -884,6 +789,7 @@
 		scroll-snap-align: start;
 		display: flex; flex-direction: column; gap: 0.75rem;
 		transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+		background: none; border: none; padding: 0; cursor: pointer;
 	}
 	.proj-slide:hover { transform: translateY(-6px); }
 
@@ -893,21 +799,6 @@
 		transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
 	}
 	.proj-slide:hover .proj-img-wrap img { transform: scale(1.04); }
-	.proj-overlay {
-		position: absolute; inset: 0; border-radius: 8px;
-		background: linear-gradient(to top, rgba(6,6,10,0.82) 0%, rgba(6,6,10,0.2) 55%, transparent 100%);
-		display: flex; flex-direction: column; justify-content: flex-end; gap: 0.3rem;
-		padding: 1.25rem 1rem;
-		opacity: 0; transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1);
-	}
-	.proj-slide:hover .proj-overlay { opacity: 1; }
-	.proj-overlay-cat {
-		font-size: 0.58rem; font-weight: 600; letter-spacing: 0.2em;
-		text-transform: uppercase; color: #c9a96e;
-	}
-	.proj-overlay-name { font-size: 1rem; font-weight: 600; color: #fff; }
-
-	.proj-caption { display: flex; justify-content: space-between; align-items: center; padding: 0 0.25rem; }
 	.proj-footer {
 		display: flex; align-items: center; justify-content: space-between;
 		margin-top: 1.75rem; gap: 1rem;
@@ -926,11 +817,6 @@
 	.proj-eyebrow { color: rgba(14,14,22,0.4); }
 	.proj-title { color: #0e0e16; }
 	.proj-title em { color: #1a4a6b; }
-	.proj-cat {
-		font-size: 0.62rem; font-weight: 500; letter-spacing: 0.18em;
-		text-transform: uppercase; color: rgba(14,14,22,0.45);
-	}
-	.proj-name { font-size: 0.9rem; font-weight: 600; color: rgba(14,14,22,0.75); }
 	.proj-arrow {
 		position: absolute; top: calc(50% - 1.75rem); z-index: 10;
 		width: 44px; height: 44px; border-radius: 50%;
@@ -956,99 +842,58 @@
 	}
 	.proj-link:hover { color: #0e0e16; border-color: #0e0e16; }
 
-	/* ── Termin Booking ── */
-	.booking-section {
-		background: #060608; padding: 8rem 0;
-		position: relative; overflow: hidden;
-	}
-	.booking-section::before {
-		content: ''; position: absolute; inset: 0;
-		background: radial-gradient(ellipse 70% 60% at 50% 110%, rgba(56,189,248,0.06), transparent 65%);
-		pointer-events: none;
-	}
-	.booking-section .container { position: relative; z-index: 1; }
-	.booking-head { text-align: center; margin-bottom: 4rem; }
-	.booking-title {
-		font-family: 'Playfair Display', Georgia, serif;
-		font-size: clamp(2.25rem, 4.5vw, 3.75rem);
-		font-weight: 600; color: #f0f4f8;
-		letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 1rem;
-	}
-	.booking-title em { color: #7ec8e3; font-style: italic; }
-	.booking-sub { color: rgba(255,255,255,0.72); font-size: 0.95rem; }
-
-	/* ── Kalender ── */
-	.cal-wrap { max-width: 520px; margin: 0 auto 2.5rem; }
-	.cal-nav {
-		display: flex; align-items: center; justify-content: space-between;
-		margin-bottom: 1.75rem;
-	}
-	.cal-title {
-		font-family: 'Playfair Display', Georgia, serif;
-		font-size: 1.1rem; font-weight: 700; color: #ffffff; letter-spacing: 0.02em;
-	}
-	.cal-arrow {
-		width: 40px; height: 40px; border-radius: 50%;
-		border: 1px solid rgba(255,255,255,0.28);
-		background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.88);
-		font-size: 1rem; cursor: pointer;
+	/* ── Lightbox ── */
+	.lb-overlay {
+		position: fixed; inset: 0; z-index: 500;
+		background: rgba(4,4,12,0.94); backdrop-filter: blur(10px);
 		display: flex; align-items: center; justify-content: center;
-		transition: all 0.2s;
+		animation: lbIn 0.2s ease both;
 	}
-	.cal-arrow:hover:not(:disabled) { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.55); color: #fff; }
-	.cal-arrow:disabled { opacity: 0.3; cursor: default; }
-	.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-	.cal-head {
-		font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-		color: rgba(255,255,255,0.65); text-align: center; padding-bottom: 0.75rem;
-	}
-	.cal-day {
-		aspect-ratio: 1; border-radius: 50%; background: none; border: none;
-		font-size: 0.82rem; color: rgba(255,255,255,0.88);
-		cursor: pointer; transition: all 0.15s;
+	@keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
+	.lb-img-wrap {
+		max-width: 88vw; max-height: 84vh;
 		display: flex; align-items: center; justify-content: center;
 	}
-	.cal-day:hover:not(:disabled) { background: rgba(168,216,240,0.22); color: #e0f4ff; }
-	.cal-off { color: rgba(255,255,255,0.3) !important; cursor: default; }
-	.cal-sel { background: #a8d8f0 !important; color: #04040c !important; font-weight: 700; }
-	.cal-time-row { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-	.cal-time-label {
-		font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
-		color: rgba(255,255,255,0.65);
+	.lb-img-wrap img {
+		max-width: 100%; max-height: 84vh;
+		object-fit: contain; border-radius: 6px;
+		box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+		animation: lbImgIn 0.25s cubic-bezier(0.16,1,0.3,1) both;
 	}
-	.cal-select {
-		background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.28);
-		color: rgba(255,255,255,0.95); padding: 0.85rem 1rem; border-radius: 4px;
-		font-size: 0.875rem; cursor: pointer; appearance: none; width: 100%;
-		transition: border-color 0.2s;
+	@keyframes lbImgIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+	.lb-close {
+		position: absolute; top: 1.25rem; right: 1.25rem;
+		width: 44px; height: 44px; border-radius: 50%;
+		background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+		color: rgba(255,255,255,0.75); font-size: 1.1rem; cursor: pointer;
+		display: flex; align-items: center; justify-content: center; transition: all 0.2s;
 	}
-	.cal-select:focus { outline: none; border-color: rgba(168,216,240,0.65); }
-	.cal-select option { background: #0e0e16; }
+	.lb-close:hover { background: rgba(255,255,255,0.18); color: #fff; }
+	.lb-nav {
+		position: absolute; top: 50%; transform: translateY(-50%);
+		width: 52px; height: 52px; border-radius: 50%;
+		background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+		color: rgba(255,255,255,0.8); cursor: pointer;
+		display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+	}
+	.lb-nav:hover { background: rgba(255,255,255,0.2); color: #fff; }
+	.lb-prev { left: 1.25rem; }
+	.lb-next { right: 1.25rem; }
+	.lb-counter {
+		position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
+		font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+		color: rgba(255,255,255,0.4);
+	}
 
-	.booking-confirm { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-	.selected-info { font-size: 0.82rem; color: rgba(255,255,255,0.72); }
-	.selected-info strong { color: #a8d8f0; }
-	.confirm-btn {
-		padding: 0.9rem 2.5rem;
-		border: 1px solid rgba(255,255,255,0.15);
-		background: none; color: rgba(255,255,255,0.35);
-		font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em;
-		text-transform: uppercase; border-radius: 2px;
-		cursor: not-allowed; transition: all 0.3s;
-	}
-	.confirm-btn.active {
-		border-color: rgba(168,216,240,0.6); color: #a8d8f0;
-		cursor: pointer; background: rgba(168,216,240,0.08);
-	}
-	.confirm-btn.active:hover { background: rgba(168,216,240,0.16); border-color: #a8d8f0; }
 	/* ── Footer ── */
 	.home-footer { background: #04040c; }
 	.top-line { height: 1px; background: rgba(168,216,240,0.1); }
 	.footer-inner {
 		display: flex; justify-content: space-between; align-items: flex-start;
-		gap: 4rem; padding: 5rem 0 4rem; flex-wrap: wrap;
+		gap: 4rem; padding-top: 5rem; padding-bottom: 4rem; flex-wrap: wrap;
 	}
-	.brand .logo { display: block; font-size: 1.5rem; letter-spacing: 0.28em; flex: unset; margin-bottom: 1rem; }
+	.brand .logo { display: inline-flex; flex: unset; margin-bottom: 1rem; }
+	.brand .logo img { height: 52px; width: auto; display: block; }
 	.brand p { font-size: 0.82rem; color: rgba(190,215,235,0.75); line-height: 1.7; }
 	.cols { display: flex; gap: 4rem; }
 	.col { display: flex; flex-direction: column; gap: 0.65rem; }
@@ -1056,7 +901,10 @@
 		font-size: 0.62rem; font-weight: 600; letter-spacing: 0.2em;
 		text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem;
 	}
-	.col a, .col span { font-size: 0.82rem; color: rgba(255,255,255,0.62); transition: color 0.2s; }
+	.col a, .col span {
+		font-size: 0.82rem; color: rgba(255,255,255,0.62); transition: color 0.2s;
+		word-break: break-word; overflow-wrap: break-word;
+	}
 	.col a:hover { color: #fff; }
 	.bottom { border-top: 1px solid rgba(255,255,255,0.1); }
 	.bottom-inner {
@@ -1071,6 +919,14 @@
 	@media (max-width: 900px) {
 		.process-steps { grid-template-columns: 1fr 1fr; }
 		.process-line { display: none; }
+		.hero-inner { flex-direction: column; gap: 2rem; }
+		.hero-stats { align-self: auto; text-align: left; padding-bottom: 2rem; flex-direction: row; gap: 0; justify-content: space-between; width: 100%; }
+		.hstat { padding: 0 1.5rem 0 0; }
+		.hstat-sep { width: 1px; height: auto; }
+		.philo-cards { grid-template-columns: 1fr; gap: 1rem; }
+		.philosophy { padding: 5rem 0; }
+		.footer-inner { gap: 2.5rem; }
+		.cols { gap: 2rem; }
 	}
 	@media (max-width: 768px) {
 		.burger { display: flex; }
@@ -1088,17 +944,28 @@
 		}
 		.nav-cta { margin-left: 0; margin-top: 1.5rem; }
 		.logo { font-size: 1.6rem; }
-		.hero-inner { padding-top: 6rem; padding-bottom: 4rem; }
+		.hero-inner { padding-top: 4.5rem; flex-direction: column; gap: 1.5rem; }
+		.hero-left  { padding-bottom: 0; }
+		.hero-stats { align-self: auto; text-align: left; padding-bottom: 2.5rem; flex-direction: row; gap: 0; justify-content: space-between; width: 100%; }
+		.hstat { padding: 0 1.25rem 0 0; }
+		.hstat-sep { width: 1px; height: auto; background: rgba(168,216,240,0.06); }
+
 		.hero-watermark { font-size: 22rem; right: -15%; bottom: -5%; }
 		.process-steps { grid-template-columns: 1fr; }
 		.footer-inner { flex-direction: column; gap: 3rem; padding: 4rem 0 3rem; }
 		.cols { gap: 2.5rem; }
 		.bottom-inner { flex-direction: column; gap: 1rem; text-align: center; }
 		.section { padding: 6rem 0; }
-		.booking-section { padding: 5rem 0; }
+		.philo-cards { grid-template-columns: 1fr; gap: 1rem; }
+		.philosophy { padding: 5rem 0; }
+		.philo-lead-sub { white-space: normal; }
 	}
 	@media (max-width: 480px) {
 		.hero-actions { flex-direction: column; }
 		.hero-actions a { text-align: center; justify-content: center; }
+		.hero-watermark { font-size: 14rem; right: -10%; bottom: -2%; }
+		.proj-slide { flex: 0 0 82%; }
+		.hstat-num { font-size: 1.4rem; }
+		.hstat-label { font-size: 0.58rem; }
 	}
 </style>
