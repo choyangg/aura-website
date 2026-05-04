@@ -493,6 +493,7 @@
 		padding: 0.875rem 1rem;
 		background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.13);
 		color: #f0f4f8; font-size: 0.875rem; font-weight: 300;
+		font-family: 'DM Sans', sans-serif;
 		width: 100%; transition: border-color 0.2s; border-radius: 2px;
 	}
 	input:focus, select:focus { outline: none; border-color: rgba(168,216,240,0.55); box-shadow: 0 0 8px rgba(168,216,240,0.1); }
