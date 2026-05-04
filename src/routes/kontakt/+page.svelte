@@ -49,30 +49,38 @@
 	function calSelect(d)     { if(isPast(calYear,calMonth,d)||isWeekend(calYear,calMonth,d))return; selDate={y:calYear,m:calMonth,d}; selTime=''; }
 
 	async function confirmAppointment() {
-		if (!selDate||!selTime) return;
+		if (!selDate || !selTime) return;
 		const brancheLabel = branche === 'Sonstiges' ? `Sonstiges: ${brancheFreitext}` : branche;
 		const d  = new Date(selDate.y, selDate.m, selDate.d);
 		const ds = d.toLocaleDateString('de-CH', {weekday:'long', day:'numeric', month:'long'});
 
-		await fetch('/', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-			body: new URLSearchParams({
-				'form-name': 'projekt-anfrage',
-				branche: brancheLabel,
-				website: hasWebsite === 'ja' ? (websiteUrl || 'Ja') : 'Nein',
-				ziele: ziele.join(', ') + (zielSonstiges ? ` / ${zielSonstiges}` : ''),
-				budget: budgetUnsicher ? 'Noch unsicher' : (budget || 'keine Angabe'),
-				name: `${vorname} ${nachname}`,
-				email,
-				telefon,
-				termin: `${ds}, ${selTime} Uhr`,
-			}).toString()
-		});
+		const formData = new FormData();
+		formData.append('form-name', 'projekt-anfrage');
+		formData.append('branche', brancheLabel);
+		formData.append('website', hasWebsite === 'ja' ? (websiteUrl || 'Ja') : 'Nein');
+		formData.append('ziele', ziele.join(', ') + (zielSonstiges ? ` / ${zielSonstiges}` : ''));
+		formData.append('budget', budgetUnsicher ? 'Noch unsicher' : (budget || 'keine Angabe'));
+		formData.append('vorname', vorname);
+		formData.append('nachname', nachname);
+		formData.append('email', email);
+		formData.append('telefon', telefon);
+		formData.append('termin', ds);
+		formData.append('uhrzeit', `${selTime} Uhr`);
 
-		console.log('Formular erfolgreich gesendet');
-		booked = true;
-		formSent = true;
+		try {
+			const response = await fetch('/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: new URLSearchParams(formData).toString()
+			});
+			if (response.ok) {
+				console.log('✅ Erfolgreich gesendet');
+				booked = true;
+				formSent = true;
+			}
+		} catch (error) {
+			console.error('❌ Fehler:', error);
+		}
 	}
 
 	// ── Navigation ───────────────────────────────────────────
@@ -371,7 +379,7 @@
 				<div class="booked-msg" in:fly={{y:10, duration:300}}>
 					<div class="booked-icon">✓</div>
 					<h3>Terminanfrage gesendet!</h3>
-					<p>Wir bestätigen Ihren Termin per E-Mail oder Telefon.<br />Bis bald. Wir freuen uns auf das Gespräch.</p>
+					<p>Wir bestätigen Ihren Termin per E-Mail.<br />Bis bald. Wir freuen uns auf das Gespräch.</p>
 				</div>
 			{:else}
 				<div class="cal-wrap">
