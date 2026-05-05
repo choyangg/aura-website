@@ -2,9 +2,9 @@
 	import { reveal } from '$lib/actions.js';
 
 	const projects = [
+		{ src: '/projekte/ref-3.png', name: 'LivingSpaces',       cat: 'Immobilien & Liegenschaften' },
 		{ src: '/projekte/ref-1.png', name: 'Hausarztpraxis',    cat: 'Medizin & Familie' },
 		{ src: '/projekte/ref-2.png', name: 'Pure Balance',       cat: 'Beauty & Wellness' },
-		{ src: '/projekte/ref-3.png', name: 'LivingSpaces',       cat: 'Immobilien & Liegenschaften' },
 		{ src: '/projekte/ref-4.png', name: 'Naturheilpraxis',    cat: 'Gesundheit & Therapie' },
 	];
 
