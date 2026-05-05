@@ -5,7 +5,6 @@
 	let menuOpen = $state(false);
 
 	const projs = [
-		{ src: '/projekte/proj-1.png' },
 		{ src: '/projekte/proj-2.png' },
 		{ src: '/projekte/proj-3.png' },
 		{ src: '/projekte/proj-4.png' },
