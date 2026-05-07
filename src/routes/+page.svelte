@@ -5,11 +5,10 @@
 	let menuOpen = $state(false);
 
 	const projs = [
-		{ src: '/projekte/proj-2.png' },
-		{ src: '/projekte/proj-3.png' },
-		{ src: '/projekte/proj-4.png' },
-		{ src: '/projekte/proj-5.png' },
-		{ src: '/projekte/proj-6.png' },
+		{ src: '/projekte/lumina_website_no_frame.png' },
+		{ src: '/projekte/physio_final_v3.png' },
+		{ src: '/projekte/website_only.png' },
+		{ src: '/projekte/ChatGPT Image 27. Apr. 2026, 21_00_33 - Edited.png' },
 	];
 	let projClip = $state(null);
 	let projIndex = $state(0);
@@ -793,11 +792,11 @@
 	.proj-slide:hover { transform: translateY(-6px); }
 
 	.proj-img-wrap { position: relative; overflow: hidden; border-radius: 8px; }
-	.proj-img-wrap img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block;
+	.proj-img-wrap img { width: 100%; height: auto; object-fit: contain; display: block;
 		box-shadow: 0 8px 32px rgba(14,14,22,0.12);
 		transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
 	}
-	.proj-slide:hover .proj-img-wrap img { transform: scale(1.04); }
+	.proj-slide:hover .proj-img-wrap img { transform: scale(1.01); }
 	.proj-footer {
 		display: flex; align-items: center; justify-content: space-between;
 		margin-top: 1.75rem; gap: 1rem;
